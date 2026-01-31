@@ -1,5 +1,10 @@
 [build]
 builder = "nixpacks"
+watchPatterns = ["backend/**"]
+
+[build.nixpacks]
+pkgs = ["python311"]
 
 [deploy]
-startCommand = "cd backend && pip install -r requirements.txt && python -m uvicorn main:app --host 0.0.0.0 --port $PORT"
+rootDirectory = "backend"
+startCommand = "pip install -r requirements.txt && python -m uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000}"
