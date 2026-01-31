@@ -1,0 +1,63 @@
+# EstimImmo AI - Docker Compose
+version: '3.8'
+
+services:
+  # Backend API
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: estimmo-backend
+    ports:
+      - "8000:8000"
+    environment:
+      - PYTHONUNBUFFERED=1
+      - LOG_LEVEL=info
+    volumes:
+      - ./backend:/app
+      - pdf_reports:/tmp/estimmo_reports
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+    networks:
+      - estimmo-network
+
+  # PostgreSQL + PostGIS pour cache DVF (optionnel)
+  # db:
+  #   image: postgis/postgis:15-3.3
+  #   container_name: estimmo-db
+  #   environment:
+  #     POSTGRES_USER: estimmo
+  #     POSTGRES_PASSWORD: estimmo_secret
+  #     POSTGRES_DB: estimmo
+  #   volumes:
+  #     - postgres_data:/var/lib/postgresql/data
+  #     - ./backend/sql/init.sql:/docker-entrypoint-initdb.d/init.sql
+  #   ports:
+  #     - "5432:5432"
+  #   networks:
+  #     - estimmo-network
+
+  # Redis pour cache API (optionnel)
+  # redis:
+  #   image: redis:7-alpine
+  #   container_name: estimmo-redis
+  #   ports:
+  #     - "6379:6379"
+  #   volumes:
+  #     - redis_data:/data
+  #   networks:
+  #     - estimmo-network
+
+networks:
+  estimmo-network:
+    driver: bridge
+
+volumes:
+  pdf_reports:
+  # postgres_data:
+  # redis_data:

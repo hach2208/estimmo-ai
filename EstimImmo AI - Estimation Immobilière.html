@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EstimImmo AI - Estimation Immobilière</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            background: linear-gradient(135deg, #1E3A5F 0%, #2D5478 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 5px;
+        }
+
+        .header .subtitle {
+            color: #E8B923;
+            font-size: 1rem;
+        }
+
+        /* Card */
+        .card {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+
+        .card h2 {
+            color: #1E3A5F;
+            font-size: 1.2rem;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Upload Zone */
+        .upload-zone {
+            border: 3px dashed #4A90A4;
+            border-radius: 15px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: #f8f9fa;
+        }
+
+        .upload-zone:hover {
+            border-color: #1E3A5F;
+            background: #e8f4f8;
+        }
+
+        .upload-zone.has-image {
+            padding: 10px;
+            border-style: solid;
+            border-color: #27AE60;
+        }
+
+        .upload-zone img {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: 10px;
+        }
+
+        .upload-icon {
+            font-size: 3rem;
+            margin-bottom: 10px;
+        }
+
+        .upload-text {
+            color: #7F8C8D;
+            font-size: 0.95rem;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        /* Location */
+        .location-box {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            margin-bottom: 15px;
+        }
+
+        .location-icon {
+            font-size: 2rem;
+        }
+
+        .location-info {
+            flex: 1;
+        }
+
+        .location-status {
+            font-weight: 600;
+            color: #2C3E50;
+        }
+
+        .location-coords {
+            font-size: 0.85rem;
+            color: #7F8C8D;
+            font-family: monospace;
+        }
+
+        .btn-location {
+            background: #4A90A4;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: background 0.3s;
+        }
+
+        .btn-location:hover {
+            background: #1E3A5F;
+        }
+
+        /* Manual coords */
+        .manual-coords {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .manual-coords input {
+            padding: 10px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+
+        .manual-coords input:focus {
+            outline: none;
+            border-color: #4A90A4;
+        }
+
+        /* Submit Button */
+        .btn-submit {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #4A90A4, #1E3A5F);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .btn-submit:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(30, 58, 95, 0.4);
+        }
+
+        .btn-submit:disabled {
+            background: #bdc3c7;
+            cursor: not-allowed;
+        }
+
+        /* Loading */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .loading.active {
+            display: block;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #e0e0e0;
+            border-top-color: #1E3A5F;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            color: #1E3A5F;
+            font-weight: 600;
+        }
+
+        .loading-steps {
+            margin-top: 15px;
+            font-size: 0.9rem;
+            color: #7F8C8D;
+        }
+
+        /* Results */
+        .results {
+            display: none;
+        }
+
+        .results.active {
+            display: block;
+        }
+
+        .price-main {
+            text-align: center;
+            padding: 30px;
+            background: linear-gradient(135deg, #1E3A5F, #2D5478);
+            border-radius: 15px;
+            color: white;
+            margin-bottom: 20px;
+        }
+
+        .price-label {
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 2px;
+            opacity: 0.8;
+        }
+
+        .price-value {
+            font-size: 2.8rem;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .price-range {
+            font-size: 0.95rem;
+            opacity: 0.9;
+        }
+
+        .confidence-badge {
+            display: inline-block;
+            background: #E8B923;
+            color: #1E3A5F;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            margin-top: 15px;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            border-top: 3px solid #4A90A4;
+        }
+
+        .stat-card:nth-child(2) {
+            border-top-color: #27AE60;
+        }
+
+        .stat-card:nth-child(3) {
+            border-top-color: #E8B923;
+        }
+
+        .stat-value {
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #1E3A5F;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: #7F8C8D;
+            margin-top: 5px;
+        }
+
+        /* Details */
+        .details-section {
+            margin-top: 20px;
+        }
+
+        .details-section h3 {
+            color: #1E3A5F;
+            font-size: 1rem;
+            margin-bottom: 10px;
+            padding-bottom: 5px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 10px 0;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .detail-label {
+            color: #7F8C8D;
+        }
+
+        .detail-value {
+            font-weight: 600;
+            color: #2C3E50;
+        }
+
+        /* DPE */
+        .dpe-container {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            margin: 15px 0;
+        }
+
+        .dpe-badge {
+            width: 60px;
+            height: 60px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: white;
+        }
+
+        .dpe-label {
+            text-align: center;
+            font-size: 0.8rem;
+            color: #7F8C8D;
+            margin-top: 5px;
+        }
+
+        /* Warnings */
+        .warnings {
+            background: #FFF9E6;
+            border-left: 4px solid #F39C12;
+            padding: 15px;
+            border-radius: 0 10px 10px 0;
+            margin-top: 20px;
+        }
+
+        .warnings h4 {
+            color: #F39C12;
+            margin-bottom: 10px;
+        }
+
+        .warning-item {
+            font-size: 0.9rem;
+            color: #2C3E50;
+            margin-bottom: 5px;
+        }
+
+        /* New estimation button */
+        .btn-new {
+            width: 100%;
+            padding: 15px;
+            background: white;
+            color: #1E3A5F;
+            border: 2px solid #1E3A5F;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: all 0.3s;
+        }
+
+        .btn-new:hover {
+            background: #1E3A5F;
+            color: white;
+        }
+
+        /* Error */
+        .error {
+            background: #FDEDEE;
+            border-left: 4px solid #E74C3C;
+            padding: 15px;
+            border-radius: 0 10px 10px 0;
+            color: #C0392B;
+            display: none;
+        }
+
+        .error.active {
+            display: block;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            color: rgba(255,255,255,0.7);
+            font-size: 0.85rem;
+            margin-top: 30px;
+        }
+
+        .footer a {
+            color: #E8B923;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>🏠 EstimImmo AI</h1>
+            <p class="subtitle">Estimation immobilière par Intelligence Artificielle</p>
+        </div>
+
+        <!-- Form Card -->
+        <div class="card" id="formCard">
+            <h2>📸 Photo du bien</h2>
+            
+            <div class="upload-zone" id="uploadZone" onclick="document.getElementById('fileInput').click()">
+                <div class="upload-icon">📷</div>
+                <p class="upload-text">Cliquez pour sélectionner une photo<br>ou glissez-déposez ici</p>
+            </div>
+            <input type="file" id="fileInput" accept="image/*" onchange="handleFileSelect(event)">
+        </div>
+
+        <div class="card">
+            <h2>📍 Localisation</h2>
+            
+            <div class="location-box">
+                <div class="location-icon">🌍</div>
+                <div class="location-info">
+                    <div class="location-status" id="locationStatus">Position non détectée</div>
+                    <div class="location-coords" id="locationCoords">--</div>
+                </div>
+                <button class="btn-location" onclick="getLocation()">Localiser</button>
+            </div>
+
+            <p style="text-align: center; color: #7F8C8D; margin: 10px 0;">ou entrez manuellement :</p>
+
+            <div class="manual-coords">
+                <input type="number" step="any" id="latitude" placeholder="Latitude (ex: 44.8378)" onchange="updateManualLocation()">
+                <input type="number" step="any" id="longitude" placeholder="Longitude (ex: -0.5792)" onchange="updateManualLocation()">
+            </div>
+        </div>
+
+        <div class="card">
+            <button class="btn-submit" id="submitBtn" onclick="submitEstimation()" disabled>
+                🔍 Estimer le bien
+            </button>
+        </div>
+
+        <!-- Loading -->
+        <div class="card loading" id="loading">
+            <div class="spinner"></div>
+            <div class="loading-text">Analyse en cours...</div>
+            <div class="loading-steps">
+                Vision IA • Cadastre • DVF • DPE
+            </div>
+        </div>
+
+        <!-- Error -->
+        <div class="card error" id="error">
+            <strong>❌ Erreur</strong>
+            <p id="errorMessage"></p>
+        </div>
+
+        <!-- Results -->
+        <div class="results" id="results">
+            <div class="card">
+                <div class="price-main">
+                    <div class="price-label">Estimation</div>
+                    <div class="price-value" id="priceValue">--</div>
+                    <div class="price-range" id="priceRange">--</div>
+                    <div class="confidence-badge" id="confidenceBadge">--</div>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value" id="surfaceTerrain">--</div>
+                        <div class="stat-label">Surface terrain</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="surfaceHabitable">--</div>
+                        <div class="stat-label">Surface habitable</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="prixM2">--</div>
+                        <div class="stat-label">Prix/m²</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="details-section">
+                    <h3>🏠 Analyse Vision IA</h3>
+                    <div class="detail-row">
+                        <span class="detail-label">Type de bien</span>
+                        <span class="detail-value" id="typeBien">--</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">État extérieur</span>
+                        <span class="detail-value" id="etatBien">--</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Étages estimés</span>
+                        <span class="detail-value" id="etages">--</span>
+                    </div>
+                </div>
+
+                <div class="details-section">
+                    <h3>🗺️ Données Cadastrales</h3>
+                    <div class="detail-row">
+                        <span class="detail-label">Commune</span>
+                        <span class="detail-value" id="commune">--</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Parcelle</span>
+                        <span class="detail-value" id="parcelle">--</span>
+                    </div>
+                </div>
+
+                <div class="details-section">
+                    <h3>💰 Marché DVF</h3>
+                    <div class="detail-row">
+                        <span class="detail-label">Prix moyen secteur</span>
+                        <span class="detail-value" id="prixMoyen">--</span>
+                    </div>
+                    <div class="detail-row">
+                        <span class="detail-label">Transactions analysées</span>
+                        <span class="detail-value" id="nbTransactions">--</span>
+                    </div>
+                </div>
+
+                <div class="details-section" id="dpeSection" style="display:none;">
+                    <h3>🌿 Performance Énergétique</h3>
+                    <div class="dpe-container">
+                        <div>
+                            <div class="dpe-badge" id="dpeEnergie">?</div>
+                            <div class="dpe-label">Énergie</div>
+                        </div>
+                        <div>
+                            <div class="dpe-badge" id="dpeGes">?</div>
+                            <div class="dpe-label">GES</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="warnings" id="warnings" style="display:none;">
+                    <h4>⚠️ Points d'attention</h4>
+                    <div id="warningsList"></div>
+                </div>
+            </div>
+
+            <button class="btn-new" onclick="resetForm()">
+                🔄 Nouvelle estimation
+            </button>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>Sources : cadastre.data.gouv.fr • DVF Etalab • ADEME</p>
+            <p style="margin-top:5px;">Estimation indicative uniquement</p>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        const API_URL = 'http://localhost:8000';
+        
+        // État
+        let selectedFile = null;
+        let currentLocation = null;
+
+        // DPE Colors
+        const DPE_COLORS = {
+            'A': '#319834', 'B': '#33CC31', 'C': '#CBFC34',
+            'D': '#FCFC32', 'E': '#FCCC00', 'F': '#FC9900', 'G': '#FC0000'
+        };
+
+        // Format price
+        function formatPrice(price) {
+            if (!price) return 'N/A';
+            return new Intl.NumberFormat('fr-FR', {
+                style: 'currency',
+                currency: 'EUR',
+                maximumFractionDigits: 0
+            }).format(price);
+        }
+
+        // Handle file selection
+        function handleFileSelect(event) {
+            const file = event.target.files[0];
+            if (file) {
+                selectedFile = file;
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const uploadZone = document.getElementById('uploadZone');
+                    uploadZone.innerHTML = `<img src="${e.target.result}" alt="Photo sélectionnée">`;
+                    uploadZone.classList.add('has-image');
+                    checkFormValidity();
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // Drag and drop
+        const uploadZone = document.getElementById('uploadZone');
+        uploadZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadZone.style.borderColor = '#1E3A5F';
+            uploadZone.style.background = '#e8f4f8';
+        });
+        uploadZone.addEventListener('dragleave', () => {
+            uploadZone.style.borderColor = '#4A90A4';
+            uploadZone.style.background = '#f8f9fa';
+        });
+        uploadZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            const file = e.dataTransfer.files[0];
+            if (file && file.type.startsWith('image/')) {
+                document.getElementById('fileInput').files = e.dataTransfer.files;
+                handleFileSelect({ target: { files: [file] } });
+            }
+        });
+
+        // Get location
+        function getLocation() {
+            const statusEl = document.getElementById('locationStatus');
+            const coordsEl = document.getElementById('locationCoords');
+            
+            statusEl.textContent = 'Recherche en cours...';
+            
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    (position) => {
+                        currentLocation = {
+                            latitude: position.coords.latitude,
+                            longitude: position.coords.longitude
+                        };
+                        statusEl.textContent = '✅ Position détectée';
+                        coordsEl.textContent = `${currentLocation.latitude.toFixed(6)}, ${currentLocation.longitude.toFixed(6)}`;
+                        document.getElementById('latitude').value = currentLocation.latitude;
+                        document.getElementById('longitude').value = currentLocation.longitude;
+                        checkFormValidity();
+                    },
+                    (error) => {
+                        statusEl.textContent = '❌ Erreur de localisation';
+                        coordsEl.textContent = error.message;
+                    },
+                    { enableHighAccuracy: true }
+                );
+            } else {
+                statusEl.textContent = '❌ Géolocalisation non supportée';
+            }
+        }
+
+        // Manual location
+        function updateManualLocation() {
+            const lat = parseFloat(document.getElementById('latitude').value);
+            const lon = parseFloat(document.getElementById('longitude').value);
+            
+            if (!isNaN(lat) && !isNaN(lon)) {
+                currentLocation = { latitude: lat, longitude: lon };
+                document.getElementById('locationStatus').textContent = '✅ Coordonnées manuelles';
+                document.getElementById('locationCoords').textContent = `${lat.toFixed(6)}, ${lon.toFixed(6)}`;
+                checkFormValidity();
+            }
+        }
+
+        // Check form validity
+        function checkFormValidity() {
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = !(selectedFile && currentLocation);
+        }
+
+        // Submit estimation
+        async function submitEstimation() {
+            // Show loading
+            document.getElementById('formCard').style.display = 'none';
+            document.getElementById('loading').classList.add('active');
+            document.getElementById('error').classList.remove('active');
+            document.getElementById('results').classList.remove('active');
+
+            try {
+                const formData = new FormData();
+                formData.append('file', selectedFile);
+
+                const url = `${API_URL}/estimate?latitude=${currentLocation.latitude}&longitude=${currentLocation.longitude}`;
+                
+                const response = await fetch(url, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail || 'Erreur serveur');
+                }
+
+                const data = await response.json();
+                displayResults(data);
+
+            } catch (error) {
+                document.getElementById('loading').classList.remove('active');
+                document.getElementById('error').classList.add('active');
+                document.getElementById('errorMessage').textContent = error.message;
+                document.getElementById('formCard').style.display = 'block';
+            }
+        }
+
+        // Display results
+        function displayResults(data) {
+            document.getElementById('loading').classList.remove('active');
+            document.getElementById('results').classList.add('active');
+
+            // Main price
+            document.getElementById('priceValue').textContent = formatPrice(data.prix_total_estime);
+            document.getElementById('priceRange').textContent = 
+                `Fourchette : ${formatPrice(data.prix_bas)} - ${formatPrice(data.prix_haut)}`;
+            document.getElementById('confidenceBadge').textContent = 
+                `Confiance : ${data.confiance?.toFixed(0) || '--'}%`;
+
+            // Stats
+            document.getElementById('surfaceTerrain').textContent = 
+                `${data.surface_terrain?.toFixed(0) || '--'} m²`;
+            document.getElementById('surfaceHabitable').textContent = 
+                `${data.surface_habitable_estimee?.toFixed(0) || '--'} m²`;
+            document.getElementById('prixM2').textContent = 
+                `${data.prix_m2_ajuste?.toFixed(0) || '--'} €`;
+
+            // Vision
+            document.getElementById('typeBien').textContent = 
+                data.vision?.type_bien || '--';
+            document.getElementById('etatBien').textContent = 
+                data.vision?.etat_exterieur || '--';
+            document.getElementById('etages').textContent = 
+                data.vision?.nombre_etages_estime || '--';
+
+            // Cadastre
+            document.getElementById('commune').textContent = 
+                data.cadastre?.commune || '--';
+            document.getElementById('parcelle').textContent = 
+                data.cadastre?.numero_parcelle ? 
+                `${data.cadastre.section || ''} ${data.cadastre.numero_parcelle}` : '--';
+
+            // DVF
+            document.getElementById('prixMoyen').textContent = 
+                formatPrice(data.dvf?.prix_m2_moyen) + '/m²';
+            document.getElementById('nbTransactions').textContent = 
+                data.dvf?.nb_transactions || '0';
+
+            // DPE
+            if (data.dpe && data.dpe.classe_energie) {
+                document.getElementById('dpeSection').style.display = 'block';
+                const dpeE = document.getElementById('dpeEnergie');
+                const dpeG = document.getElementById('dpeGes');
+                
+                dpeE.textContent = data.dpe.classe_energie;
+                dpeE.style.background = DPE_COLORS[data.dpe.classe_energie] || '#999';
+                
+                dpeG.textContent = data.dpe.classe_ges || '?';
+                dpeG.style.background = DPE_COLORS[data.dpe.classe_ges] || '#999';
+            } else {
+                document.getElementById('dpeSection').style.display = 'none';
+            }
+
+            // Warnings
+            if (data.avertissements && data.avertissements.length > 0) {
+                document.getElementById('warnings').style.display = 'block';
+                document.getElementById('warningsList').innerHTML = 
+                    data.avertissements.map(w => `<div class="warning-item">${w}</div>`).join('');
+            } else {
+                document.getElementById('warnings').style.display = 'none';
+            }
+        }
+
+        // Reset form
+        function resetForm() {
+            selectedFile = null;
+            currentLocation = null;
+            
+            document.getElementById('fileInput').value = '';
+            document.getElementById('uploadZone').innerHTML = `
+                <div class="upload-icon">📷</div>
+                <p class="upload-text">Cliquez pour sélectionner une photo<br>ou glissez-déposez ici</p>
+            `;
+            document.getElementById('uploadZone').classList.remove('has-image');
+            document.getElementById('latitude').value = '';
+            document.getElementById('longitude').value = '';
+            document.getElementById('locationStatus').textContent = 'Position non détectée';
+            document.getElementById('locationCoords').textContent = '--';
+            document.getElementById('submitBtn').disabled = true;
+            
+            document.getElementById('formCard').style.display = 'block';
+            document.getElementById('results').classList.remove('active');
+            document.getElementById('error').classList.remove('active');
+        }
+
+        // Auto-get location on load
+        window.onload = function() {
+            getLocation();
+        };
+    </script>
+</body>
+</html>

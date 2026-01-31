@@ -1,0 +1,70 @@
+{
+  "expo": {
+    "name": "EstimImmo AI",
+    "slug": "estimmo-ai",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#1E3A5F"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.estimmo.ai",
+      "infoPlist": {
+        "NSCameraUsageDescription": "EstimImmo AI a besoin d'accéder à votre caméra pour photographier les biens immobiliers.",
+        "NSLocationWhenInUseUsageDescription": "EstimImmo AI utilise votre position pour localiser le bien et accéder aux données cadastrales.",
+        "NSPhotoLibraryUsageDescription": "EstimImmo AI a besoin d'accéder à vos photos pour sélectionner des images de biens."
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#1E3A5F"
+      },
+      "package": "com.estimmo.ai",
+      "permissions": [
+        "CAMERA",
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION",
+        "READ_EXTERNAL_STORAGE"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro"
+    },
+    "plugins": [
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Autoriser EstimImmo AI à accéder à votre caméra"
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Autoriser EstimImmo AI à accéder à votre position"
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Autoriser EstimImmo AI à accéder à vos photos"
+        }
+      ]
+    ],
+    "extra": {
+      "apiUrl": "http://localhost:8000",
+      "eas": {
+        "projectId": "your-project-id"
+      }
+    }
+  }
+}
